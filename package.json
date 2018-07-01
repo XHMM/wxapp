@@ -7,8 +7,12 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
-    "wxapp"
+    "wxapp",
+    "微信小程序",
+    "smallapp",
+    "小程序"
   ],
+  "repository": "https://github.com/XHMM/wxapp",
   "author": "xhmm",
   "license": "MIT"
 }
