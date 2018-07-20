@@ -1,6 +1,6 @@
 {
   "name": "@xhmm/wxapp",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "微信小程序的typescript声明文件",
   "main": "index.js",
   "types":"wxapp.d.ts",

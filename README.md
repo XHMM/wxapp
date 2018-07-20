@@ -3,7 +3,7 @@
 
 ### 使用
 1. `npm i @xhmm/wxapp`
-2. 在`app.ts`上方加入`/// <reference path='/path/to/node_modules/@xhmm/wxapp' />`
+2. 在`app.ts`上方加入`/// <reference path='/path/to/node_modules/@xhmm/wxapp/wxapp.d.ts' />`
 
 ```
 // 你可以为page页面加入部分的data类型检测，但由于小程序的调用方式，setData方法不会被类型检查
