@@ -1,8 +1,9 @@
 {
   "name": "@xhmm/wxapp",
-  "version": "0.0.4",
+  "version": "1.0.0",
   "description": "微信小程序的typescript声明文件",
   "main": "index.js",
+  "types":"wxapp.d.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
