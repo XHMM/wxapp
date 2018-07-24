@@ -1,19 +1,20 @@
 ### 说明
-这是微信小程序的声明文件，目前对应基础库版本为`2.2.0`，注：即将废弃API以及不再维护AP未包含在内
+这是微信小程序的声明文件，目前对应基础库版本为`2.2.0`，该声明文件无注释，因此使用时请参考[官网文档](https://developers.weixin.qq.com/miniprogram/dev/api/)。注：即将废弃API以及不再维护AP未包含在内
 
 ### 使用
 1. `npm i @xhmm/wxapp`
 2. 在`app.ts`上方加入`/// <reference path='/path/to/node_modules/@xhmm/wxapp/wxapp.d.ts' />`
 
 ```
-// 你可以为page页面加入部分的data类型检测，但由于小程序的调用方式，setData方法不会被类型检查
+// 你可以为page页面加入部分的data类型检测，由于小程序的自身函数调用方式，`setData`方法无法像`tsx`的`setState`那样被类型检查
 
-type Data ={
+// pages/index/index.ts
+type IData ={
     name:string
 }
-Page<Data>({
-    data= {
-        name:123 // ts error
+Page<IData>({
+    data: {
+        name: 123 // ts error
     }
     onHide(){
         this.setData({
@@ -21,8 +22,34 @@ Page<Data>({
         })
     }
 })
+// 尾部注释：Page的泛型参数可加可不加
 ```
 
+```
+// 当你在app.ts中声明了自定义变量(称之为`全局变量`)时，以下写法可实现在page页面中对全局变量的使用做语法检测
+
+// app.ts
+export interface IGlobalData {
+    isUpdated: boolean
+}
+const initialGlobalData: IGlobalData = {
+    isUpdated: false
+}
+App({
+    ...initialGlobalData,
+    onLaunch() {}
+})
+
+// pages/index/index.ts
+const app = getApp<IGlobalData>()
+Page({
+    onHide(){
+        app.isUpdated = true // 会触发类型提示
+        app.isGood = false // ts error
+    }
+})
+// 尾部注释：getApp的泛型参数必须加上，确保全局变量的正确使用，当然你也可以传入any来取消检查(不建议)
+```
 ### 日志
 [官方API列表](https://developers.weixin.qq.com/miniprogram/dev/api/)
 

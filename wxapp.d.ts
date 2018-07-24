@@ -24,8 +24,8 @@ interface App {
   onPageNotFound?: (options?: OnPageNotFoundOptions) => void;
   [key: string]: any;
 }
-interface Page<Data = {}> {
-  data?: Data;
+interface Page<D> {
+  data?: D;
   onLoad?: (options: IndexData) => void;
   onReady?: () => void;
   onShow?: () => void;
@@ -60,10 +60,10 @@ interface Component {
 }
 
 declare function App(app: App): void;
-declare function Page<Data = {}>(page: Page<Data>): void;
+declare function Page<D>(page: Page<D>): void;
 declare function Component(component: Component): void;
-declare function getApp(): App;
-declare function getCurrentPages(): Page[];
+declare function getApp<T>(): T;
+declare function getCurrentPages(): Page<any>[];
 declare function getPhoneNumber(e?: any): void;
 declare namespace wx {
   interface BaseOptions {
