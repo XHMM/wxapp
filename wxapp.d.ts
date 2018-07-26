@@ -1051,8 +1051,8 @@ declare namespace wx {
   function reLaunch(options: RelaunchOptions): void;
   //--------------动画
   interface Animation {
-    step(options: AnimationOptions): void;
-    export(): any;
+    step(): this;
+    export(): this;
     opacity(value: number): this;
     backgroundColor(color: string): this;
     width(value: number | string): this;
