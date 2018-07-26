@@ -1052,7 +1052,7 @@ declare namespace wx {
   //--------------动画
   interface Animation {
     step(options: AnimationOptions): void;
-    (): any;
+    export(): any;
     opacity(value: number): this;
     backgroundColor(color: string): this;
     width(value: number | string): this;
