@@ -3,7 +3,7 @@
 
 ### 使用
 #### v1.x版本使用指南(单纯做api的提示)
-1. `npm i @xhmm/wxapp`
+1. `npm i @xhmm/wxapp@v1`
 2. 在`app.ts`上方加入`/// <reference path='/path/to/node_modules/@xhmm/wxapp/wxapp.d.ts' />`
 
     ```
@@ -56,7 +56,7 @@
 
 #### v2.x版本使用指南
 ##### 该版本极大的强化了类型提示，但在写法上会和原生有所出入，使用步骤如下
-1. `npm i @xhmm/wxapp`
+1. `npm i @xhmm/wxapp@v2` 或 `npm i@xhmm/wxapp@latest`
 2. 在`app.ts`上方加入`/// <reference path='/path/to/node_modules/@xhmm/wxapp/wxapi.d.ts' />`(注：此处是`wxapi.d.ts`而不是`wxapp.d.ts`)
 3. 由于小程序不会引入`node_modules`下的文件引用(即使你写成相对路径也不行)，因此我们需要手动移动`@xhmm/wxapp`目录下的`wxapp.ts`文件(注：不是`wxapi.d.ts`)，把它放在自己的开发目录下，比如`libs/wxapp.ts`
 4. 开始使用：
