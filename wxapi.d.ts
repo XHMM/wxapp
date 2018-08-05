@@ -324,6 +324,12 @@ declare namespace wx {
   }
   function getBackgroundAudioManager(): BackgroundAudioManager;
   //-------音频组件控件
+  interface AudioContext {
+    setSrc(src: string): void;
+    play(): void;
+    pause(): void;
+    seek(position: number): void;
+  }
   interface InnerAudioContext {
     src: string;
     startTime: number;
@@ -366,6 +372,10 @@ declare namespace wx {
   interface GetRecorderManagerOptions extends BaseOptions {
     success: (res?: GetRecorderManagerResult) => void;
   }
+  /**
+   * @deprecated since v1.6.0
+   */
+  function createAudioContext(audioId:string, instance?:any):AudioContext;
   function createInnerAudioContext(): InnerAudioContext;
   function getRecorderManager(): void;
   //-------视频
@@ -391,13 +401,6 @@ declare namespace wx {
   }
   function chooseVideo(options: ChooseVideoOptions): void;
   function saveVideoToPhotosAlbum(): void;
-
-  interface AudioContext {
-    setSrc(src: string): void;
-    play(): void;
-    pause(): void;
-    seek(position: number): void;
-  }
   //-------视频组件控制
   interface VideoContext {
     play(): void;
@@ -488,6 +491,16 @@ declare namespace wx {
   /*-------------------------媒体END----------------------*/
 
   /* --------------------------文件---------------------- */
+  interface GetFileInfoOptions extends BaseOptions {
+    filePath: string
+    digestAlgorithm?:string
+    success?:(res?: GetFileInfoResult)=>void
+  }
+  interface GetFileInfoResult {
+    size:number
+    digest:string
+    errMsg:string
+  }
   interface SaveFileResult {
     savedFilePath: string;
   }
@@ -524,6 +537,7 @@ declare namespace wx {
     fileType?: "doc" | "xls" | "ppt" | "pdf" | "docx" | "xlsx" | "pptx";
   }
   function saveFile(options: SaveFileOptions): void;
+  function getFileInfo(options: GetFileInfoOptions): void;
   function getSavedFileList(options: GetSavedFileListOptions): void;
   function getSavedFileInfo(options: GetSavedFileInfoOptions): void;
   function removeSavedFile(options: RemoveSavedFileOptions): void;
@@ -601,12 +615,11 @@ declare namespace wx {
   }
   //---------获取位置
   function getLocation(options: GetLocationOptions): void;
-  //----------查看位置
   function chooseLocation(options: ChooseLocationOptions): void;
+  //----------查看位置
   function openLocation(options: OpenLocationOptions): void;
   //----------地图组件控制
   function createMapContext(mapId: string): MapContext;
-
   /*--------------------------------------- 位置END---------------------------------------*/
 
   /* ---------------------------------- 设备 ---------------------------------- */
@@ -633,6 +646,7 @@ declare namespace wx {
   function getSystemInfo(options: GetSystemInfoOptions): void;
   function getSystemInfoSync(): GetSystemInfoResult;
   function canIUse(param: string): boolean;
+  //-------内存
   function onMemoryWarning(callback: (res: { level: number }) => void): void;
   //---------------网络状态
   type NetworkType = "2g" | "3g" | "4g" | "wifi" | "unknown" | "none";
@@ -923,8 +937,60 @@ declare namespace wx {
   }
   function addPhoneContact(options?: AddPhoneContactOptions): void;
   //-------------------------NFC
+  interface GetHCEStateOptions  extends BaseOptions{
+    success?:(res?:GetHCEStateResult)=>void
+  }
+  interface GetHCEStateResult {
+    errMsg:string
+    errCode:number
+  }
+  interface OnHCEMessageResult {
+    messageType:number
+    data:any[]
+    reason: number
+  }
+  interface SendHCEMessageOptions extends BaseOptions{
+    data:any[]
+    success?:(res?:GetHCEStateResult)=>void
+  }
+  function getHCEState(options?:GetHCEStateOptions):void;
+  function startHCE(options?:GetHCEStateOptions):void;
+  function stopHCE(options?:GetHCEStateOptions):void;
+  function onHCEMessage(callback:(res?:OnHCEMessageResult)=>void):void;
+  function sendHCEMessage(options?: SendHCEMessageOptions):void;
   //-------------------------Wi-Fi
-
+  interface ConnectWifiOptions extends BaseOptions {
+    SSID:string
+    BSSID:string
+    password:string
+  }
+  interface Wifi {
+    SSID:string
+    BSSID:string
+    secure:boolean
+    signalStrength:number
+  }
+  interface OnGetWifiListResult {
+    wifiList:Wifi[]
+  }
+  interface SetWifiListInterface extends BaseOptions{
+    wifiList:{
+      SSID:string
+      BSSID:string
+      password:string
+    }[]
+  }
+  interface GetConnectedWifiOptions extends BaseOptions{
+    success?:(res:{wifi:Wifi})=>void
+  }
+  function startWifi(options?:BaseOptions):void;
+  function stopWifi(options?:BaseOptions):void;
+  function connectWifi(options?:ConnectWifiOptions):void;
+  function getWifiList(options?:BaseOptions):void;
+  function onGetWifiList(callback:(res:OnGetWifiListResult)=>void):void;
+  function setWifiList(options:SetWifiListInterface):void;
+  function onWifiConnected(callback:(res:{wifi:Wifi})=>void):void;
+  function getConnectedWifi(options?:GetConnectedWifiOptions):void;
   /* ---------------------------------- 设备END ---------------------------------- */
   /* ---------------------------------- 界面----------------------------------*/
   //-------------交互反馈
@@ -1020,6 +1086,17 @@ declare namespace wx {
   function setTabBarItem(options: SetTabBarItemOptions): void;
   function showTabBar(options: ShowOrHideTabBarOptions): void;
   function hideTabBar(options: ShowOrHideTabBarOptions): void;
+  //----------设置窗口背景
+  interface SetBackgroundColorOptions {
+    backgroundColor:string
+    backgroundColorTop:string
+    backgroundColorBottom:string
+  }
+  interface SetBackgroundTextStyleOptions {
+    textStyle:string
+  }
+  function setBackgroundColor(options:SetBackgroundColorOptions):void;
+  function setBackgroundTextStyle(options:SetBackgroundTextStyleOptions):void;
   //-----------设置置顶信息
   interface SetTopBarOptions extends BaseOptions {
     text: string;
@@ -1029,25 +1106,22 @@ declare namespace wx {
   interface NavigateToOptions extends BaseOptions {
     url: string;
   }
-  function navigateTo(options: NavigateToOptions): void;
   interface RedirectToOptions extends BaseOptions {
     url: string;
   }
-  function redirectTo(options: RedirectToOptions): void;
   interface SwitchTabOptions extends BaseOptions {
-    /**
-     * 需要跳转的 tabBar 页面的路径（需在 app.json 的 tabBar 字段定义的页面），路径后不能带参数
-     */
     url: string;
   }
-  function switchTab(options: SwitchTabOptions): void;
   interface NavigateBackOptions {
     delta?: number;
   }
-  function navigateBack(options: NavigateBackOptions): void;
   interface RelaunchOptions extends BaseOptions {
     url: string;
   }
+  function navigateTo(options: NavigateToOptions): void;
+  function redirectTo(options: RedirectToOptions): void;
+  function switchTab(options: SwitchTabOptions): void;
+  function navigateBack(options: NavigateBackOptions): void;
   function reLaunch(options: RelaunchOptions): void;
   //--------------动画
   interface Animation {
@@ -1120,7 +1194,12 @@ declare namespace wx {
     transformOrigin?: string;
   }
   function createAnimation(options?: AnimationOptions): Animation;
-
+  //--------------位置
+  interface PageScrollToOptions {
+    scrollTop:number
+    duration?:number
+  }
+  function pageScrollTo(option:PageScrollToOptions):void;
   //---------------绘图
   interface CanvasContext {
     setFillStyle(color: string): void;
@@ -1203,7 +1282,19 @@ declare namespace wx {
     strokeText(text: string, x: number, y: number, maxWidth: number): void;
     lineDashOffset: number;
     createPattern(image: string, repetition: string): void;
+    shadowBlur:any
+    shadowColor:any
+    shadowOffsetX:any
+    shadowOffsetY:any
     font: string;
+    transform(
+      scaleX: number,
+      skewX: number,
+      skewY: number,
+      scaleY: number,
+      translateX: number,
+      translateY: number
+    ):void;
     setTransform(
       scaleX: number,
       skewX: number,
@@ -1213,17 +1304,11 @@ declare namespace wx {
       translateY: number
     ): void;
   }
-  function createCanvasContext(
-    canvasId: string,
-    componentInstance?: object
-  ): CanvasContext;
-  function createContext(): CanvasContext;
   interface DrawCanvasOptions {
     canvasId: string;
     actions: any[];
     reserve?: boolean;
   }
-  function drawCanvas(options: DrawCanvasOptions): void;
   interface CanvasToTempFilePathOptions extends BaseOptions {
     x?: number;
     y?: number;
@@ -1235,7 +1320,6 @@ declare namespace wx {
     fileType?: string;
     quality?: number;
   }
-  function canvasToTempFilePath(options: CanvasToTempFilePathOptions): string;
   interface CanvasGetImageData {
     errMsg: string;
     width: number;
@@ -1250,7 +1334,6 @@ declare namespace wx {
     height?: number;
     success?: (res?: CanvasGetImageData) => void;
   }
-  function canvasGetImageData(options: CanvasGetImageDataOptions): any[];
   interface CanvasPutImageData extends BaseOptions {
     canvasId: string;
     data: any[];
@@ -1259,8 +1342,20 @@ declare namespace wx {
     width: number;
     height: number;
   }
+  function createCanvasContext(canvasId: string, componentInstance?: object): CanvasContext;
+  /**
+   * @deprecated 不推荐使用
+   */
+  function createContext(): CanvasContext;
+  /**
+   * @deprecated 不推荐使用
+   */
+  function drawCanvas(options: DrawCanvasOptions): void;
+  function canvasToTempFilePath(options: CanvasToTempFilePathOptions): string;
+  function canvasGetImageData(options: CanvasGetImageDataOptions): any[];
   function canvasPutImageData(options: CanvasPutImageData): void;
   //-----------------下拉刷新
+  function stopPullDownRefresh(): void;
   function stopPullDownRefresh(): void;
   //-------------WXML节点信息
   interface NodesRefInterface {
@@ -1474,6 +1569,10 @@ declare namespace wx {
   interface GetSettingOptions extends BaseOptions {
     success(res?: GetSettingRes): void;
   }
+  /**
+   * @deprecated 即将废弃，请使用<button>组件
+   */
+  function openSetting(options?:BaseOptions):void;
   function getSetting(options: GetSettingOptions): void;
   //--------------微信运动
   interface GetWeRunResult {
@@ -1486,6 +1585,17 @@ declare namespace wx {
     success?: (res?: GetWeRunResult) => void;
   }
   function getWeRunData(options?: GetWeRunOptions): void;
+  //--------------当前账号信息
+  interface GetAccountInfoSyncResult {
+    miniProgram: {
+      appId:string
+    }
+    plugin: {
+      appId:string
+      version:string
+    }
+  }
+  function getAccountInfoSync():GetAccountInfoSyncResult;
   //---------------打开小程序
   interface NavigateToMiniProgramResult {
     errMsg: string;
@@ -1501,6 +1611,9 @@ declare namespace wx {
     extraData: any;
     success: (res: NavigateToMiniProgramResult) => void;
   }
+  /**
+   * @deprecated 即将废弃，请使用<navigator>组件
+   */
   function navigateToMiniProgram(options: NavigateToMiniProgramOptions): void;
   function navigateBackMiniProgram(
     options: NavigateBackMiniProgramOptions
@@ -1559,6 +1672,7 @@ declare namespace wx {
     options: CheckIsSoterEnrolledInDeviceOptions
   ): void;
   /* ----------------------数据-------------------------- */
+  //-----------自定义分析
   function reportAnalytics(eventName: string, data: any): void;
   /* ----------------------数据END-------------------------- */
   /*----------------------更新-----------------------*/
@@ -1584,7 +1698,6 @@ declare namespace wx {
   //------------监控数据上报
   function reportMonitor(name: string, value: string): void;
   /*--------------------监控END----------------*/
-
   /*--------------调试接口--------------------*/
   //---------打卡/关闭调试
   interface SetEnableDebugOptions extends BaseOptions {
