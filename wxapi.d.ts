@@ -1355,7 +1355,7 @@ declare namespace wx {
   function canvasGetImageData(options: CanvasGetImageDataOptions): any[];
   function canvasPutImageData(options: CanvasPutImageData): void;
   //-----------------下拉刷新
-  function stopPullDownRefresh(): void;
+  function startPullDownRefresh(): void;
   function stopPullDownRefresh(): void;
   //-------------WXML节点信息
   interface NodesRefInterface {
