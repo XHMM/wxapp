@@ -9,72 +9,138 @@
 1. `npm i@xhmm/wxapp@latest`
 2. 在`app.ts`上方加入`/// <reference path='/path/to/node_modules/@xhmm/wxapp/wxapi.d.ts' />`(注：此处是`wxapi.d.ts`而不是`wxapp.d.ts`)
 3. **如果你只想要使用“弱版本”，则步骤到此结束，若想使用“强版本”，请继续下面的步骤**
-3. 由于小程序不会引入`node_modules`下的文件(即使你写成相对路径也不行)，因此我们需要手动移动`@xhmm/wxapp`目录下的`wxapp.ts`文件(注：不是`wxapi.d.ts`)，把它放在自己的开发目录下，比如`libs/wxapp.ts`
-4. 开始使用(“强版本”使用示例)：
-    ```
-    // app.ts
-    import {CApp,createApp} from 'path/to/wxapp'
-    // 请export我，因为page页面要用
-    export interface IGlobalData {
-        isUpdated: boolean
+4. 由于小程序不会引入`node_modules`下的文件(即使你写成相对路径也不行)，因此我们需要手动移动`@xhmm/wxapp`目录下的`wxapp.ts`文件(注：不是`wxapi.d.ts`)，把它放在自己的开发目录下，比如`libs/wxapp.ts`
+5. “强版本”使用示例：
+
+#### 2.2.1及以前版本使用方法：
+
+```
+// app.ts
+import {CApp,createApp} from 'path/to/wxapp'
+// 请export我，因为page页面要用
+export interface IGlobalData {
+    isUpdated: boolean
+}
+class App extends CApp<IGlobalData> {
+    onLaunch() {
+        //do your things
     }
-    class App extends CApp<IGlobalData> {
-        onLaunch() {
-            //do your things
-        }
-    }
-    // 该构造参数传入的内容对应IGlobalData
-    createApp(new App({
-        isUpdated: false
-    }))
+}
+// 该构造参数传入的内容对应IGlobalData
+createApp(new App({
+    isUpdated: false
+}))
 
 
+// pages/index/index/ts
+import {CPage,createPage,getGlobalApp} from 'path/to/wxapp'
+import {IGlobalData} from 'path/to/app'
 
-    // pages/index/index/ts
-    import {CPage,createPage,getGlobalApp} from 'path/to/wxapp'
-    import {IGlobalData} from 'path/to/app'
+interface IData {
+    a:number
+}
+const app = getGlobalApp<IGlobalData>()
+// 请传入泛型参数，否则不会类型检测setData
+class Page extends CPage<IData> {
+    onReady() {
+        app.isUpdated = true
+        this.setData({
+            a: 2
+        })
+    }
+}
+// 该构造参数传入的内容对应IData
+createPage(new Page({
+    a: 1
+}))
+```
 
-    interface IData {
-        a:number
-    }
-    const app = getGlobalApp<IGlobalData>()
-    // 请传入泛型参数，否则不会类型检测setData
-    class Page extends CPage<IData> {
-        onReady() {
-            app.isUpdated = true
-            this.setData({
-                a: 2
-            })
-        }
-    }
-    // 该构造参数传入的内容对应IData
-    createPage(new Page({
-        a: 1
-    }))
-    ```
+```
+// 下面是使用自定义组件的示例
+import {CComponent, createComponent} from 'path/to/wxapp'
+interface IData {
+    a: string
+}
+interface IProps {
+    b:number
+}
+class Component extends CComponet<IProps,IData> {
 
-    ```
-    // 下面是使用自定义组件的示例
-    import {CComponent, createComponent} from 'path/to/wxapp'
-    interface IData {
-        a: string
-    }
-    interface IProps {
-        b:number
-    }
-    class Component extends CComponet<IProps,IData> {
+}
+// new Compoent的参数一对应小程序Component文档的properties的内容，所以传值的时候需要注意下格式匹配哦
+createComponent(new Component({b:Number},{a:'hello'}))
+```
 
-    }
-    // new Compoent的参数一对应小程序Component文档的properties的内容，所以传值的时候需要注意下格式匹配哦
-    createComponent(new Component({b:Number},{a:'hello'}))
-    ```
 
-##### 注意事项
-1. 使用“弱版本”时，只需引入声明文件，其他写法和原生一致，无额外限制
-1. 使用“强版本”时，你可以继续在page/app中直接调用Page({})/App({})而不使用createPage/createApp ，但此时你的类名就需要改一下了，不要和`Page/App`重名
-1. (题外话)imort文件时，路径一定要指定到具体ts文件的名字，因为微信并不遵循ts/node的那种模块引用规则
+#### 2.3.0及以上版本使用：
+##### 在 `Win10` + `Webstorm` + `Typescript3` 环境下使用2.2.1及以前版本时，当给`new Xxx()`传入data时，会莫名导致CUP高升引起电脑卡死，目前不清楚原因，出现此情况的伙伴们，请务必升级至2.3.0+版本并开始使用以下写法：
+
+该写法与2.2.1及以前版本的写法不同处在于：
+- `app.ts`的写法会发生破坏性改变，你需要将全局变量写在`data`属性内部，同时你在page中使用全局属性时，也需要写成`app.data.xxx`而不是`app.xxx`，具体见下方示例
+- `page`页面的`data`赋值从构造函数转移至类属性，具体见下方示例
+
+```
+// app.ts
+import {CApp,createApp} from 'path/to/wxapp'
+// 请export我，因为page页面要用
+export interface IGlobalData {
+    isUpdated: boolean
+}
+class App extends CApp<IGlobalData> {
+    // 必须要将全局变量写在data属性中
+    data = {
+      isUpdated: false
+    }
+    onLaunch() {
+        //do your things
+    }
+}
+createApp(new App()) // 此处不传入参数
+
+
+// pages/index/index/ts
+import {CPage,createPage,getGlobalApp} from 'path/to/wxapp'
+import {IGlobalData} from 'path/to/app'
+
+interface IData {
+    a:number
+}
+const app = getGlobalApp<IGlobalData>()
+// 请传入泛型参数，否则不会类型检测setData
+class Page extends CPage<IData> {
+    data= {
+      a:1
+    }
+    onReady() {
+        app.data.isUpdated = true // 不能写成app.xxx
+        this.setData({
+            a: 2
+        })
+    }
+}
+createPage(new Page()) // 此处不传入参数
+```
+
+```
+// 下面是使用自定义组件的示例
+import {CComponent, createComponent} from 'path/to/wxapp'
+interface IData {
+    a: string
+}
+interface IProps {
+    b:number
+}
+class Component extends CComponet<IProps,IData> {
+  data={
+    b:1
+  }
+  properties= {
+    b:null
+  }
+}
+createComponent(new Component()) // 此处不传入参数
+```
 
 
 ### 后言
 如有任何问题，请issue区讨论
-

@@ -59,7 +59,8 @@ interface ISelectorQuery {
   exec(cb?): void
 }
 export class CApp<D = {}> {
-  constructor(globalData: D) {
+  public data: D // app的data是可修改的
+  constructor(globalData?: D) {
     for (const key in globalData) {
       if (globalData.hasOwnProperty(key)) {
         // @ts-ignore
@@ -75,7 +76,7 @@ export class CApp<D = {}> {
 }
 export class CPage<D = {}> {
   public data: Readonly<D>
-  constructor(data: Readonly<D>) {
+  constructor(data?: Readonly<D>) {
     this.data = data
   }
   public setData(data: Partial<Readonly<D>>, callback?: () => void) {
@@ -109,12 +110,11 @@ export class CComponent<P, D> {
   relations: any
   externalClasses: string[]
   options: any
-
-  constructor(properties: P, data: D) {
+  constructor(properties?: P, data?: D) {
     this.properties = properties
     this.data = data
   }
-  setData(data: Partial<P & D>): void {
+  setData(data: Partial<Readonly<P> & Readonly<D>>): void {
     // 小程序的Component无法传入自定义方法(自定义方法都是写在methods属性里的)，所以因此此处写成这种形式不会引发无限递归，因为小程序会清除掉所有的外来方法，所以这么写既是安全的，也能继续起类型提示的作用
     // @ts-ignore
     this.setData(data)
@@ -174,12 +174,11 @@ export function createPage(page: InstanceType<typeof CPage>): void {
   // @ts-ignore
   Page(collect(page))
 }
-export function createComponent(
-  component: InstanceType<typeof CComponent>
-): any {
-  return collect(component)
+export function createComponent(component: InstanceType<typeof CComponent>): void {
+  // @ts-ignore
+  Component(collect(component))
 }
-export function getGlobalApp<D>(): D {
+export function getGlobalApp<D>(): CApp<D> {
   // @ts-ignore
   return getApp()
 }
