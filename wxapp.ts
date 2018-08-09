@@ -98,7 +98,7 @@ export class CPage<D = {}> {
     text: string
   }): void {}
 }
-export class CComponent<P, D> {
+export class CComponent<P={}, D={}> {
   is: string
   id: string
   dataset: string

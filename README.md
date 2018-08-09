@@ -4,7 +4,7 @@
 ### 使用
 ##### 下面我将[仅做api提示的版本为“弱版本”]，将[可完整提示的版本为“强版本”]：
 - 弱版本：即仅有API提示和全局方法声明等定义(目前网络上的小程序声明文件都是这种的)
-- 强版本：除了可以实现上述要求外，还可以实现和用`ts`写`react`中的类型提示一样，让你的`page`的`data`属性被正确提示，让你的`app`的全局变量被正确提示，当然还有小程序的`component`的相关提示
+- 强版本：除了可以实现上述要求外，还可以实现和用`ts`写`react`中的类型提示一样，让你的`page`的`data`属性被正确提示，让你的`app`的全局变量被正确提示，但不支持小程序的`component`的相关提示，具体见下方示例
 
 1. `npm i@xhmm/wxapp@latest`
 2. 在`app.ts`上方加入`/// <reference path='/path/to/node_modules/@xhmm/wxapp/wxapi.d.ts' />`(注：此处是`wxapi.d.ts`而不是`wxapp.d.ts`)
@@ -56,24 +56,13 @@ createPage(new Page({
 ```
 
 ```
-// 下面是使用自定义组件的示例
-import {CComponent, createComponent} from 'path/to/wxapp'
-interface IData {
-    a: string
-}
-interface IProps {
-    b:number
-}
-class Component extends CComponet<IProps,IData> {
-
-}
-// new Compoent的参数一对应小程序Component文档的properties的内容，所以传值的时候需要注意下格式匹配哦
-createComponent(new Component({b:Number},{a:'hello'}))
+// 在实现小程序自定义组件时，只能按照原生写法来，该强版本目前无法实现完整的类型提示
+Component({
+  ...
+})
 ```
-
-
 #### 2.3.0及以上版本使用：
-##### 在 `Win10` + `Webstorm` + `Typescript3` 环境下使用2.2.1及以前版本时，当给`new Xxx()`传入data时，会莫名导致CUP高升引起电脑卡死，目前不清楚原因，出现此情况的伙伴们，请务必升级至2.3.0+版本并开始使用以下写法：
+##### 鄙人在 `Win10` + `Webstorm`环境下使用2.2.1及以前版本时，当给`new Xxx()`传入data时，会莫名导致CUP高升引起电脑卡死，目前不清楚原因（总觉得是个人电脑原因），出现此情况的伙伴们，请升级至2.3.0+版本并开始使用以下写法：
 
 该写法与2.2.1及以前版本的写法不同处在于：
 - `app.ts`的写法会发生破坏性改变，你需要将全局变量写在`data`属性内部，同时你在page中使用全局属性时，也需要写成`app.data.xxx`而不是`app.xxx`，具体见下方示例
@@ -122,25 +111,10 @@ createPage(new Page()) // 此处不传入参数
 ```
 
 ```
-// 下面是使用自定义组件的示例
-import {CComponent, createComponent} from 'path/to/wxapp'
-interface IData {
-    a: string
-}
-interface IProps {
-    b:number
-}
-class Component extends CComponet<IProps,IData> {
-  data={
-    b:1
-  }
-  properties= {
-    b:null
-  }
-}
-createComponent(new Component()) // 此处不传入参数
+// 在实现小程序自定义组件时，只能按照原生写法来，该强版本目前无法实现完整的类型提示
+Component({
+  ...
+})
 ```
-
-
 ### 后言
 如有任何问题，请issue区讨论
