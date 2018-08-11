@@ -1040,9 +1040,9 @@ declare namespace wx {
   interface SetNavigationBarColorOptions extends BaseOptions {
     fontColor: "#ffffff" | "#000000";
     backgroundColor: string;
-    animation: {
-      duration: number;
-      timingFunc: string;
+    animation?: {
+      duration?: number;
+      timingFunc?: string;
     };
   }
   function setNavigationBarTitle(options: SetNavigationBarTitleOptions): void;
@@ -1064,19 +1064,19 @@ declare namespace wx {
     index: number;
   }
   interface SetTabBarStyleOptions extends BaseOptions {
-    color: string;
-    selectedColor: string;
-    backgroundColor: string;
-    borderStyle: string;
+    color?: string;
+    selectedColor?: string;
+    backgroundColor?: string;
+    borderStyle?: string;
   }
   interface SetTabBarItemOptions {
     index: number;
-    text: string;
-    iconPath: string;
-    selectedIconPath: string;
+    text?: string;
+    iconPath?: string;
+    selectedIconPath?: string;
   }
   interface ShowOrHideTabBarOptions {
-    animation: boolean;
+    animation?: boolean;
   }
   function setTabBarBadge(options: SetTabBarBadgeOptions): void;
   function removeTabBarBadge(options: RemoveTabBarBadgeOptions): void;
@@ -1084,13 +1084,13 @@ declare namespace wx {
   function hideTabBarRedDot(options: HideTabBarRedDotOptions): void;
   function setTabBarStyle(options: SetTabBarStyleOptions): void;
   function setTabBarItem(options: SetTabBarItemOptions): void;
-  function showTabBar(options: ShowOrHideTabBarOptions): void;
-  function hideTabBar(options: ShowOrHideTabBarOptions): void;
+  function showTabBar(options?: ShowOrHideTabBarOptions): void;
+  function hideTabBar(options?: ShowOrHideTabBarOptions): void;
   //----------设置窗口背景
   interface SetBackgroundColorOptions {
-    backgroundColor:string
-    backgroundColorTop:string
-    backgroundColorBottom:string
+    backgroundColor?:string
+    backgroundColorTop?:string
+    backgroundColorBottom?:string
   }
   interface SetBackgroundTextStyleOptions {
     textStyle:string
