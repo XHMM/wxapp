@@ -1360,7 +1360,7 @@ declare namespace wx {
   //-------------WXML节点信息
   interface NodesRefInterface {
     boundingClientRect(
-      cb?: (
+      callback?: (
         rect: {
           id: string;
           dataset: object;
@@ -1374,7 +1374,7 @@ declare namespace wx {
       ) => void
     ): SelectorQueryInterface;
     scrollOffset(
-      cb?: (
+      callback?: (
         res: {
           id: string;
           dataset: object;
@@ -1394,11 +1394,11 @@ declare namespace wx {
     });
   }
   interface SelectorQueryInterface {
-    in(component: SelectorQueryInterface): void;
+    in(component: any): SelectorQueryInterface;
     select(selector: string): NodesRefInterface;
     selectAll(selector: string): NodesRefInterface;
     selectViewport(): NodesRefInterface;
-    exec(cb?): void;
+    exec(callback?:(res:any[])=>void): void;
   }
   function createSelectorQuery(): SelectorQueryInterface;
   //--------------WXML节点布局相交状态
