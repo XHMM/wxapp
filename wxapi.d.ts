@@ -57,12 +57,15 @@ interface Component {
   relations?: any;
   externalClasses?: any;
   options?: any;
+  lifetimes?:any;
+  pageLifetimes?:any;
+  definitionFilter?: (defFields?:any,definitionFilterArr?:any[])=>void;
 }
 
 declare function App(app: App): void;
 declare function Page(page: Page): void;
 declare function Component(component: Component): void;
-declare function getApp(): App;
+declare function getApp(options:{allowDefault?:boolean}): App;
 declare function getCurrentPages(): Page[];
 declare function getPhoneNumber(e?: any): void;
 declare namespace wx {
@@ -313,6 +316,8 @@ declare namespace wx {
     seek: (position: number) => void;
     onCanplay: (callback: () => void) => void;
     onPlay: (callback: () => void) => void;
+    onSeeking:(callback: () => void) => void;
+    onSeeked:(callback: () => void) => void;
     onPause: (callback: () => void) => void;
     onStop: (callback: () => void) => void;
     onEnded: (callback: () => void) => void;
@@ -1432,6 +1437,8 @@ declare namespace wx {
     instance?: any,
     options?: CreateIntersectionObserverOptions
   ): IntersectionObserver;
+  //--------------自定义组件
+  function nextTick(fn:()=>void):void
   /*--------------------------------界面END-----------------------------------------------*/
 
   /* ----------------------------第三方平台-------------------------------- */

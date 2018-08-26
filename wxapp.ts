@@ -16,6 +16,9 @@ interface IOnPageNotFoundOptions {
   query: IndexData
   isEntryPage: boolean
 }
+/**
+ * @deprecated
+ * */
 interface INodesRef {
   boundingClientRect(
     cb?: (
@@ -51,6 +54,9 @@ interface INodesRef {
     computedStyle?: string[]
   })
 }
+/**
+ * @deprecated
+ * */
 interface ISelectorQuery {
   in(component: ISelectorQuery): void
   select(selector: string): INodesRef
@@ -98,6 +104,9 @@ export class CPage<D = {}> {
     text: string
   }): void {}
 }
+/**
+ * @deprecated
+ * */
 export class CComponent<P={}, D={}> {
   is: string
   id: string
@@ -110,6 +119,10 @@ export class CComponent<P={}, D={}> {
   relations: any
   externalClasses: string[]
   options: any
+  lifetimes?:any;
+  pageLifetimes?:any;
+  definitionFilter?: (defFields?:any,definitionFilterArr?:any[])=>void;
+
   constructor(properties?: P, data?: D) {
     this.properties = properties
     this.data = data
@@ -174,13 +187,16 @@ export function createPage(page: InstanceType<typeof CPage>): void {
   // @ts-ignore
   Page(collect(page))
 }
+/**
+ * @deprecated
+ * */
 export function createComponent(component: InstanceType<typeof CComponent>): void {
   // @ts-ignore
   Component(collect(component))
 }
-export function getGlobalApp<D>(): CApp<D> {
+export function getGlobalApp<D>(options:{allowDefault?:boolean}): CApp<D> {
   // @ts-ignore
-  return getApp()
+  return getApp(options)
 }
 declare function getCurrentPages(): Array<InstanceType<typeof CPage>>
 declare function getPhoneNumber(e?: any): void
