@@ -65,7 +65,7 @@ interface Component {
 declare function App(app: App): void;
 declare function Page(page: Page): void;
 declare function Component(component: Component): void;
-declare function getApp(options:{allowDefault?:boolean}): App;
+declare function getApp(options?:{allowDefault?:boolean}): App;
 declare function getCurrentPages(): Page[];
 declare function getPhoneNumber(e?: any): void;
 declare namespace wx {

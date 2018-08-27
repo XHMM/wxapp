@@ -194,7 +194,7 @@ export function createComponent(component: InstanceType<typeof CComponent>): voi
   // @ts-ignore
   Component(collect(component))
 }
-export function getGlobalApp<D>(options:{allowDefault?:boolean}): CApp<D> {
+export function getGlobalApp<D>(options?:{allowDefault?:boolean}): CApp<D> {
   // @ts-ignore
   return getApp(options)
 }
