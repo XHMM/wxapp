@@ -1,5 +1,5 @@
 ### 说明
-这是微信小程序的声明文件，目前对应基础库版本为`2.2.4(2018.08.24)`，该声明文件无注释，因此使用时请参考[官网文档](https://developers.weixin.qq.com/miniprogram/dev/api/)。
+这是微信小程序的声明文件，目前对应[基础库版本](https://developers.weixin.qq.com/miniprogram/dev/framework/release.html)为`2.2.5(2018.08.30)`，该声明文件无注释，因此使用时请参考[官网文档](https://developers.weixin.qq.com/miniprogram/dev/api/)。
 
 ### 使用
 1. `npm i@xhmm/wxapp@latest`
@@ -58,6 +58,10 @@ class Page extends CPage<IData> {
         this.setData({
             a: 2
         })
+    }
+    // 【重要提醒】自定义函数切不可写成箭头函数的形式！会导致maximum call stack 报错
+    customMethod() {
+      // do someting
     }
 }
 createPage(new Page())
