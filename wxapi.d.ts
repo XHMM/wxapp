@@ -1333,10 +1333,10 @@ declare namespace wx {
   }
   interface CanvasGetImageDataOptions extends BaseOptions {
     canvasId: string;
-    x?: number;
-    y?: number;
-    width?: number;
-    height?: number;
+    x: number;
+    y: number;
+    width: number;
+    height: number;
     success?: (res?: CanvasGetImageData) => void;
   }
   interface CanvasPutImageData extends BaseOptions {
@@ -1345,7 +1345,7 @@ declare namespace wx {
     x: number;
     y: number;
     width: number;
-    height: number;
+    height?: number;
   }
   function createCanvasContext(canvasId: string, componentInstance?: object): CanvasContext;
   /**
