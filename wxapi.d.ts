@@ -177,7 +177,7 @@ declare namespace wx {
   function onSocketClose(callback: (res?: any) => void): void;
   /*--------------------------------网络END-----------------------------------------------*/
 
-  /* ---------------------------------- 媒体API列表 ----------------------------------*/
+  /* ---------------------------------- 媒体----------------------------------*/
   //-------图片
   interface ChooseImageResult {
     tempFilePaths: string[];
@@ -1440,92 +1440,41 @@ declare namespace wx {
   //--------------自定义组件
   function nextTick(fn:()=>void):void
   /*--------------------------------界面END-----------------------------------------------*/
-
-  /* ----------------------------第三方平台-------------------------------- */
-  interface GetExtConfigResult {
-    errMsg: string;
-    extConfig: any;
-  }
-  interface GetExtConfigOptions extends BaseOptions {
-    success: (res?: GetExtConfigResult) => void;
-  }
-  function getExtConfig(options?: GetExtConfigOptions): void;
-  function getExtConfigSync(): { extConfig: any };
-  /* ----------------------------第三方平台END-------------------------------- */
-
   /*---------------------------------- 开放接口----------------------------------*/
-  //-----------登录
-  interface LoginResult {
-    errMsg: string;
-    code: string;
+  //-----------设置
+  interface AuthSetting {
+    scope:{
+      userInfo: boolean
+      userLocation: boolean
+      address:boolean
+      invoiceTitle:boolean
+      werun:boolean
+      record:boolean
+      writePhotoAlbum:boolean
+      camera:boolean
+    }
   }
-  interface LoginOptions extends BaseOptions {
-    timeout?: number;
-    success?: (res?: LoginResult) => void;
+  interface SettingOptions  extends BaseOptions{
+    success:(res:{
+      authSetting:AuthSetting
+    })=>void
   }
-  interface CheckSessionOptions extends BaseOptions {}
-  function login(options: LoginOptions): void;
-  function checkSession(options: CheckSessionOptions): void;
-  //----------授权
-  interface AuthorizeResult {
-    errMsg: string;
+  function getSetting(options?:SettingOptions):void
+  /**
+   * @deprecated 即将废弃，请使用<button>组件
+   */
+  function openSetting(options?:SettingOptions):void
+  //-----------当前账号信息
+  interface GetAccountInfoSyncResult {
+    miniProgram:{
+      appId:string
+    }
+    plugin:{
+      appId:string
+      version:string
+    }
   }
-  interface AuthorizeOptions extends BaseOptions {
-    scope: string;
-    success?: (res?: AuthorizeResult) => void;
-  }
-  function authorize(options: AuthorizeOptions): void;
-  //----------用户信息
-  interface UserInfo {
-    nickName: string;
-    avatarUrl: string;
-    gender: string;
-    city: string;
-    province: string;
-    country: string;
-    language: string;
-  }
-  interface GetUserInfoResult {
-    userInfo: UserInfo;
-    rawData: string;
-    signature: string;
-    encryptData: string;
-    iv: string;
-  }
-  interface GetUserInfoOptions extends BaseOptions {
-    withCredentials?: boolean;
-    lang?: "zh_CN" | "zh_TW" | "en";
-    timeout?: number;
-    success?: (res?: GetUserInfoResult) => void;
-  }
-  function getUserInfo(options: GetUserInfoOptions): void;
-  //---------微信支付
-  interface RequestPaymentOptions extends BaseOptions {
-    timeStamp: number;
-    nonceStr: string;
-    package: string;
-    signType: string;
-    paySign: string;
-  }
-  function requestPayment(options: RequestPaymentOptions): void;
-  //------------转发
-  interface ShowShareMenuOptions extends BaseOptions {
-    withShareTicket?: boolean;
-  }
-  interface GetShareInfoResult {
-    errMsg: string;
-    encryptData: string;
-    iv: string;
-  }
-  interface GetShareInfoOptions extends BaseOptions {
-    shareTicket: string;
-    timeout?: number;
-    success: (res?: GetShareInfoResult) => void;
-  }
-  function showShareMenu(options?: ShowShareMenuOptions): void;
-  function hideShareMenu(options?: BaseOptions): void;
-  function updateShareMenu(options?: ShowShareMenuOptions): void;
-  function getShareInfo(): void;
+  function getAccountInfoSync():GetAccountInfoSyncResult
   //--------收货地址
   interface ChooseAddressResult {
     errMsg: string;
@@ -1542,6 +1491,15 @@ declare namespace wx {
     success: (res?: ChooseAddressResult) => void;
   }
   function chooseAddress(options: ChooseAddressOptions): void;
+  //----------授权
+  interface AuthorizeResult {
+    errMsg: string;
+  }
+  interface AuthorizeOptions extends BaseOptions {
+    scope: string;
+    success?: (res?: AuthorizeResult) => void;
+  }
+  function authorize(options: AuthorizeOptions): void;
   //-------------卡券
   interface AddCardResult {
     cardList: {
@@ -1567,20 +1525,62 @@ declare namespace wx {
   }
   function addCard(options?: AddCardOptions): void;
   function openCard(options?: OpenCardOptions): void;
-  //----------设置
-  interface GetSettingRes {
-    authSetting: {
-      [key: string]: boolean;
-    };
+  //--------------发票
+  interface ChooseInvoiceOptions extends BaseOptions{
+    success?:(res:{
+      invoiceInfo:{
+        cardId:string
+        encryptCode:string
+        publisherAppid:string
+      }
+    })=>void
   }
-  interface GetSettingOptions extends BaseOptions {
-    success(res?: GetSettingRes): void;
+  interface ChooseInvoiceTitleOptions extends BaseOptions {
+    success?: (res: {
+      type: string;
+      title: string;
+      taxNumber: string;
+      companyAddress: string;
+      telephone: string;
+      bankName: string;
+      bankAccount: string;
+      errMsg: string;
+    }) => void;
   }
-  /**
-   * @deprecated 即将废弃，请使用<button>组件
-   */
-  function openSetting(options?:BaseOptions):void;
-  function getSetting(options: GetSettingOptions): void;
+  function chooseInvoice(options?:ChooseInvoiceOptions): void;
+  function chooseInvoiceTitle(options?:ChooseInvoiceTitleOptions): void;
+  //---------todo:支付
+  interface RequestPaymentOptions extends BaseOptions {
+    timeStamp: string;
+    nonceStr: string;
+    package: string;
+    signType: string;
+    paySign: string;
+  }
+  function requestPayment(options: RequestPaymentOptions): void;
+  //----------用户信息
+  interface UserInfo {
+    nickName: string;
+    avatarUrl: string;
+    gender: string;
+    city: string;
+    province: string;
+    country: string;
+    language: string;
+  }
+  interface GetUserInfoOptions extends BaseOptions {
+    withCredentials?: boolean;
+    lang?: "zh_CN" | "zh_TW" | "en";
+    timeout?: number;
+    success?: (res: {
+      userInfo: UserInfo;
+      rawData: string;
+      signature: string;
+      encryptData: string;
+      iv: string;
+    }) => void;
+  }
+  function getUserInfo(options: GetUserInfoOptions): void;
   //--------------微信运动
   interface GetWeRunResult {
     errMsg: string;
@@ -1592,55 +1592,16 @@ declare namespace wx {
     success?: (res?: GetWeRunResult) => void;
   }
   function getWeRunData(options?: GetWeRunOptions): void;
-  //--------------当前账号信息
-  interface GetAccountInfoSyncResult {
-    miniProgram: {
-      appId:string
-    }
-    plugin: {
-      appId:string
-      version:string
-    }
+  //---------数据分析
+  function reportAnalytics(eventName: string, data: any): void;
+  //-----------登录
+  interface LoginOptions extends BaseOptions {
+    timeout?: number;
+    success?: (res: {code:string}) => void;
   }
-  function getAccountInfoSync():GetAccountInfoSyncResult;
-  //---------------打开小程序
-  interface NavigateToMiniProgramResult {
-    errMsg: string;
-  }
-  interface NavigateToMiniProgramOptions extends BaseOptions {
-    appId: string;
-    path?: string;
-    extraData?: any;
-    envVersion?: string;
-    success: (res: NavigateToMiniProgramResult) => void;
-  }
-  interface NavigateBackMiniProgramOptions {
-    extraData: any;
-    success: (res: NavigateToMiniProgramResult) => void;
-  }
-  /**
-   * @deprecated 即将废弃，请使用<navigator>组件
-   */
-  function navigateToMiniProgram(options: NavigateToMiniProgramOptions): void;
-  function navigateBackMiniProgram(
-    options: NavigateBackMiniProgramOptions
-  ): void;
-  //--------------获取发票抬头
-  interface ChooseInvoiceTitleResult {
-    type: string;
-    title: string;
-    taxNumber: string;
-    companyAddress: string;
-    telephone: string;
-    bankName: string;
-    bankAccount: string;
-    errMsg: string;
-  }
-  interface ChooseInvoiceTitleOptions extends BaseOptions {
-    success: (res?: ChooseInvoiceTitleResult) => void;
-  }
-  function chooseInvoiceTitle(): void;
-  //-------------生物认证
+  function login(options: LoginOptions): void;
+  function checkSession(options: BaseOptions): void;
+//-------------生物认证
   interface CheckIsSupportSoterAuthenticationResult {
     supportMode: string[];
     errMsg: string;
@@ -1678,10 +1639,28 @@ declare namespace wx {
   function checkIsSoterEnrolledInDevice(
     options: CheckIsSoterEnrolledInDeviceOptions
   ): void;
-  /* ----------------------数据-------------------------- */
-  //-----------自定义分析
-  function reportAnalytics(eventName: string, data: any): void;
-  /* ----------------------数据END-------------------------- */
+  //---------------小程序跳转
+  interface NavigateToMiniProgramResult {
+    errMsg: string;
+  }
+  interface NavigateToMiniProgramOptions extends BaseOptions {
+    appId: string;
+    path?: string;
+    extraData?: any;
+    envVersion?: string;
+    success: (res: NavigateToMiniProgramResult) => void;
+  }
+  interface NavigateBackMiniProgramOptions {
+    extraData: any;
+    success: (res: NavigateToMiniProgramResult) => void;
+  }
+  function navigateBackMiniProgram(
+    options: NavigateBackMiniProgramOptions
+  ): void;
+  /**
+   * @deprecated 即将废弃，请使用<navigator>组件
+   */
+  function navigateToMiniProgram(options: NavigateToMiniProgramOptions): void;
   /*----------------------更新-----------------------*/
   interface UpdateManager {
     onCheckForUpdate(callback: (hasUpdate: boolean) => void): void;
@@ -1691,30 +1670,55 @@ declare namespace wx {
   }
   function getUpdateManager(): UpdateManager;
   /*----------------------更新END-----------------------*/
-
-  /*---------------------多线程-----------------------*/
+  /*--------------------Worker-----------------------*/
   interface Worker {
     postMessage(message: any): void;
     onMessage(callback: (message: any) => void): void;
     terminate(): void;
   }
   function createWorker(scriptPath: string): Worker;
-  /*---------------------多线程END-----------------------*/
-
-  /*--------------------监控--------------------*/
-  //------------监控数据上报
+  /*--------------------WorkerEND-----------------------*/
+  /*--------------------数据上报--------------------*/
   function reportMonitor(name: string, value: string): void;
-  /*--------------------监控END----------------*/
-  /*--------------调试接口--------------------*/
+  /*--------------------数据上报END----------------*/
+  /*-----------------todo： WXML----------------------------------*/
+  /*----------------------WXML END----------------------------------*/
+  /*-----------------todo： 地图----------------------------------*/
+  /*----------------------地图END----------------------------------*/
+  /*-----------------todo：系统----------------------------------*/
+  /*----------------------系统END----------------------------------*/
+  /* ----------------------------第三方平台-------------------------------- */
+  interface GetExtConfigResult {
+    errMsg: string;
+    extConfig: any;
+  }
+  interface GetExtConfigOptions extends BaseOptions {
+    success: (res?: GetExtConfigResult) => void;
+  }
+  function getExtConfig(options?: GetExtConfigOptions): void;
+  function getExtConfigSync(): { extConfig: any };
+  /* ----------------------------第三方平台END-------------------------------- */
+  /*-----------------todo： 画布----------------------------------*/
+  /*----------------------画布END----------------------------------*/
+  /*------------------------调试------------------------------*/
   //---------打卡/关闭调试
   interface SetEnableDebugOptions extends BaseOptions {
     enableDebug: boolean;
     success(errMsg?: string): void;
   }
   function setEnableDebug(options: SetEnableDebugOptions): void;
-  /*--------------调试接口END--------------------*/
+  /*--------------------------调试END--------------------*/
+  /*-----------------todo： 基础----------------------------------*/
+  /*----------------------基础END----------------------------------*/
+  /*-----------------todo： 转发----------------------------------*/
+  /*----------------------转发END----------------------------------*/
+  /*-----------------todo： 路由----------------------------------*/
+  /*----------------------路由END----------------------------------*/
+  /*-----------------定时器----------------------------------*/
+  // 即js的四个
+  /*----------------------定时器END----------------------------------*/
 
-  /*--------------------日志------------------*/
+  /*--------------------todo: 这个 日志 看归类到哪里了------------------*/
   interface LogManager {
     log(message?: any, ...optionalParams: any[]): void;
     info(message?: any, ...optionalParams: any[]): void;
