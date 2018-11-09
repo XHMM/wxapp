@@ -1,6 +1,18 @@
 interface IndexData {
   [key: string]: any;
 }
+type Fn = ()=>void;
+type FnWithParam<T> = (res:T)=>void;
+interface BaseOptions {
+  success?: (res?: any) => void;
+  fail?: (err?: any) => void;
+  complete?: () => void;
+}
+interface BaseOptions2 extends BaseOptions {
+  success?: (res: { errMsg: string }) => void;
+}
+
+
 interface OnLaunchShowOptions {
   path: string;
   query: IndexData;
@@ -69,32 +81,21 @@ declare function getApp(options?:{allowDefault?:boolean}): App;
 declare function getCurrentPages(): Page[];
 declare function getPhoneNumber(e?: any): void;
 declare namespace wx {
-  interface BaseOptions {
-    success?: (res?: any) => void;
-    fail?: (err?: any) => void;
-    complete?: () => void;
-  }
 
-  interface BaseOptions2 extends BaseOptions {
-    success?: (res: { errMsg: string }) => void;
-  }
 
 
   /*-----------------------------------网络-----------------------------------*/
-
   //--------------下载
   interface DownloadFileResult {
     tempFilePath: string;
     statusCode: number;
   }
-
   interface DownloadFileOptions extends BaseOptions {
     url: string;
     header?: IndexData;
     filePath: string;
     success?: (res?: DownloadFileResult) => void;
   }
-
   interface DownloadTask {
     onProgressUpdate: () => {
       progress: number;
@@ -103,16 +104,37 @@ declare namespace wx {
     };
     abort: () => void;
   }
-
   function downloadFile(options: DownloadFileOptions): DownloadTask;
-
+  //--------------mDNS
+  interface OnLocalServiceFoundResult {
+    serviceType:string
+    serviceName:string
+    ip:string
+    port:string
+  }
+  interface OnLocalServiceLostResult {
+    serviceType:string
+    serviceName:string
+  }
+  interface StartLocalServiceDiscoveryOptions extends BaseOptions2 {
+    serviceType: string
+  }
+  function offLocalServiceDiscoveryStop(callback:Fn):void;
+  function offLocalServiceFound(callback:Fn):void;
+  function offLocalServiceLost(callback:Fn):void;
+  function offLocalServiceResolveFail(callback:Fn):void;
+  function onLocalServiceDiscoveryStop(callback:Fn):void;
+  function onLocalServiceFound(callback: FnWithParam<OnLocalServiceFoundResult>):void;
+  function onLocalServiceLost(callback: FnWithParam<OnLocalServiceLostResult>):void;
+  function onLocalServiceResolveFail(callback: FnWithParam<OnLocalServiceLostResult>):void;
+  function startLocalServiceDiscovery(options: StartLocalServiceDiscoveryOptions):void;
+  function stopLocalServiceDiscovery(options?: BaseOptions2):void;
   //--------------发起请求
   interface RequestResult {
     data: IndexData;
     statusCode: number;
     header: IndexData;
   }
-
   interface RequestOptions extends BaseOptions {
     url: string;
     data?: IndexData;
@@ -122,67 +144,15 @@ declare namespace wx {
     responseType?: 'text' | 'arraybuffer';
     success?: (res?: RequestResult) => void;
   }
-
   interface RequestTask {
-    abort: () => void;
+    abort: Fn;
   }
-
   function request(options: RequestOptions): RequestTask;
-
-  //--------------WebSocket
-  interface ConnectSocketOptions extends BaseOptions {
-    url: string;
-    header?: IndexData;
-    protocols?: string[];
-  }
-
-  interface SendSocketMessageOptions extends BaseOptions {
-    data: string | any[];
-  }
-
-  interface CloseSocketOptions extends BaseOptions {
-    code?: number;
-    reason?: string;
-  }
-
-  interface SocketTaskSendOptions extends BaseOptions {
-    data: string | any[];
-  }
-
-  interface SocketTaskCloseOptions extends BaseOptions {
-    code?: number;
-    reason?: string;
-  }
-
-  interface SocketTask {
-    onMessage: (callback: (res?: { data: string | any[] }) => void) => void;
-    send: (options: SocketTaskSendOptions) => void;
-    close: (options?: SocketTaskCloseOptions) => void;
-    onOpen: (callback: (res?: { header: IndexData }) => void) => void;
-    onClose: (callback: () => void) => void;
-    onError: (callback: (res?: { errMsg: string }) => void) => void;
-  }
-
-  function connectSocket(options: ConnectSocketOptions): SocketTask;
-
-  function sendSocketMessage(options: SendSocketMessageOptions): void;
-
-  function onSocketOpen(callback: (res?: { header: IndexData }) => void): void;
-
-  function onSocketClose(callback: () => void): void;
-
-  function onSocketMessage(callback: (res?: { data: string | any[] }) => void): void;
-
-  function onSocketError(callback: (error?: any) => void): void;
-
-  function closeSocket(options?: CloseSocketOptions): void;
-
   //--------------上传
   interface UploadFileResult {
     data: string;
     statusCode: number;
   }
-
   interface UploadFileOptions extends BaseOptions {
     url: string;
     filePath: string;
@@ -191,7 +161,6 @@ declare namespace wx {
     formData?: IndexData;
     success?: (res?: UploadFileResult) => void;
   }
-
   interface UploadTask {
     onProgressUpdate: () => {
       progress: number;
@@ -200,52 +169,67 @@ declare namespace wx {
     };
     abort: () => void;
   }
-
   function uploadFile(options: UploadFileOptions): void;
-
+  //--------------WebSocket
+  interface ConnectSocketOptions extends BaseOptions {
+    url: string;
+    header?: IndexData;
+    protocols?: string[];
+  }
+  interface SendSocketMessageOptions extends BaseOptions {
+    data: string | any[];
+  }
+  interface CloseSocketOptions extends BaseOptions {
+    code?: number;
+    reason?: string;
+  }
+  interface SocketTaskSendOptions extends BaseOptions {
+    data: string | any[];
+  }
+  interface SocketTaskCloseOptions extends BaseOptions {
+    code?: number;
+    reason?: string;
+  }
+  interface SocketTaskOnErrorResult {
+    errMsg: string
+  }
+  interface SocketTaskOnMessageResult {
+    data: string | any[]
+  }
+  interface SocketTaskOnOpenResult {
+    header: IndexData
+  }
+  interface SocketTask {
+    close: (options?: SocketTaskCloseOptions) => void;
+    onClose: (callback: Fn) => void;
+    onError: (callback: FnWithParam<SocketTaskOnErrorResult>) => void;
+    onMessage: (callback: FnWithParam<SocketTaskOnMessageResult>) => void;
+    onOpen: (callback: FnWithParam<SocketTaskOnOpenResult>) => void;
+    send: (options: SocketTaskSendOptions) => void;
+  }
+  function closeSocket(options?: CloseSocketOptions): void;
+  function connectSocket(options: ConnectSocketOptions): SocketTask;
+  function onSocketClose(callback: Fn): void;
+  function onSocketError(callback: FnWithParam<SocketTaskOnErrorResult>): void;
+  function sendSocketMessage(options: SendSocketMessageOptions): void;
+  function onSocketOpen(callback: FnWithParam<SocketTaskOnOpenResult>): void;
+  function onSocketMessage(callback: FnWithParam<SocketTaskOnMessageResult>): void;
   /*--------------------------------网络END-----------------------------------------------*/
 
 
   /* ---------------------------------- 媒体----------------------------------*/
-
   //---------音频
-  interface AudioContext {
-    setSrc(src: string): void;
-
-    play(): void;
-
-    pause(): void;
-
-    seek(position: number): void;
+  interface AudioSource extends IndexData{}
+  interface GetAvailableAudioSourcesOptions extends BaseOptions {
+    success?: (res?:{audioSources: AudioSource[]})=>void
   }
-
+  interface AudioContext {
+    pause(): void;
+    play(): void;
+    seek(position: number): void;
+    setSrc(src: string): void;
+  }
   interface InnerAudioContext {
-    offStop: (callback: () => void) => void;
-    onEnded: (callback: () => void) => void;
-    offEnded: (callback: () => void) => void;
-    onTimeUpdate: (callback: () => void) => void;
-    offTimeUpdate: (callback: () => void) => void;
-    onError: (callback: (res?: any) => void) => void;
-    offError: (callback: () => void) => void;
-    onWaiting: (callback: () => void) => void;
-    offWaiting: (callback: () => void) => void;
-    onSeeking: (callback: () => void) => void;
-    offSeeking: (callback: () => void) => void;
-    onSeeked: (callback: () => void) => void;
-    offCanplay: (callback: () => void) => void;
-    play: () => void;
-    pause: () => void;
-    stop: () => void;
-    seek: (position: number) => void;
-    destroy: () => void;
-    onCanplay: (callback: () => void) => void;
-    onPlay: (callback: () => void) => void;
-    offPlay: (callback: () => void) => void;
-    onPause: (callback: () => void) => void;
-    offPause: (callback: () => void) => void;
-    onStop: (callback: () => void) => void;
-    offSeeked: (callback: () => void) => void;
-    // 下方属性是从https://developers.weixin.qq.com/miniprogram/dev/api/media/audio/InnerAudioContext.html页面中获取
     src: string;
     startTime: number;
     autoplay: boolean;
@@ -256,34 +240,114 @@ declare namespace wx {
     readonly currentTime: number;
     readonly paused: boolean;
     readonly buffered: number;
+
+    destroy: () => void;
+    offCanplay: (callback: Fn) => void;
+    offEnded: (callback: Fn) => void;
+    offError: (callback: Fn) => void;
+    offPause: (callback: Fn) => void;
+    offPlay: (callback: Fn) => void;
+    offSeeked: (callback: Fn) => void;
+    offSeeking: (callback: Fn) => void;
+    offStop: (callback: Fn) => void;
+    offTimeUpdate: (callback: Fn) => void;
+    offWaiting: (callback: Fn) => void;
+
+    onCanplay: (callback: Fn) => void;
+    onEnded: (callback: Fn) => void;
+    onError: (callback: (res?: any) => void) => void;
+    onPause: (callback: Fn) => void;
+    onPlay: (callback: Fn) => void;
+    onSeeked: (callback: Fn) => void;
+    onSeeking: (callback: Fn) => void;
+    onStop: (callback: Fn) => void;
+    onTimeUpdate: (callback: Fn) => void;
+    onWaiting: (callback: Fn) => void;
+
+    pause: () => void;
+    play: () => void;
+    seek: (position: number) => void;
+    stop: () => void;
   }
-
-  /**
-   * @deprecated
-   */
-  function stopVoice(options?: BaseOptions): void;
-
-  /**
-   * @deprecated
-   */
-  function createAudioContext(audioId: string, instance?: any): AudioContext;
-
-  function createInnerAudioContext(): InnerAudioContext;
-
-  // todo 下面几个没完善，累... https://developers.weixin.qq.com/miniprogram/dev/api/media/audio/wx.getAvailableAudioSources.html
-  function getAvailableAudioSources(): void;
-
-  function setInnerAudioOption(): void
-
   interface PlayVoiceOptions extends BaseOptions {
     filePath: string;
     duration?: number;
   }
-
-  function playVoice(options: PlayVoiceOptions): void;
-
+  interface SetInnerAudioOptionOptions extends BaseOptions{
+    mixWithOther?: boolean
+    obeyMuteSwitch?: boolean
+  }
+  /**
+   * @deprecated
+   */
+  function createAudioContext(audioId: string, instance?: any): AudioContext;
+  function createInnerAudioContext(): InnerAudioContext;
+  function getAvailableAudioSources(options?: GetAvailableAudioSourcesOptions): void;
   function pauseVoice(options?: BaseOptions): void;
-
+  function playVoice(options: PlayVoiceOptions): void;
+  function setInnerAudioOption(options?: SetInnerAudioOptionOptions): void
+  /**
+   * @deprecated
+   */
+  function stopVoice(options?: BaseOptions): void;
+  //--------------背景音频
+  interface GetBackgroundAudioPlayerStateResult {
+    duration: number;
+    currentPosition: number;
+    status: 2 | 1 | 0;
+    downloadPercent: number;
+    dataUrl: string;
+  }
+  interface GetBackgroundAudioPlayerStateOptions extends BaseOptions {
+    success?: (res?: GetBackgroundAudioPlayerStateResult) => void;
+  }
+  interface PlayBackgroundAudioOptions extends BaseOptions {
+    dataUrl: string;
+    title?: string;
+    coverImgUrl?: string;
+  }
+  interface SeekBackgroundAudioOptions extends BaseOptions {
+    position: number;
+  }
+  interface BackgroundAudioManager {
+    readonly duration: number;
+    readonly currentTime: number;
+    readonly paused: boolean;
+    src: string;
+    startTime: number;
+    readonly buffered: number;
+    title: string;
+    epname: string;
+    singer: string;
+    coverImageUrl: string;
+    webUrl: string;
+    protocol: string;
+    play: () => void;
+    pause: () => void;
+    stop: () => void;
+    seek: (position: number) => void;
+    onCanplay: (callback:Fn) => void;
+    onPlay: (callback:Fn) => void;
+    onSeeking:(callback:Fn) => void;
+    onSeeked:(callback:Fn) => void;
+    onPause: (callback:Fn) => void;
+    onStop: (callback:Fn) => void;
+    onEnded: (callback:Fn) => void;
+    onTimeUpdate: (callback:Fn) => void;
+    onPrev: (callback:Fn) => void;
+    onNext: (callback:Fn) => void;
+    onError: (callback: Fn) => void;
+    onWaiting: (callback:Fn) => void;
+  }
+  function getBackgroundAudioManager(): BackgroundAudioManager;
+  function getBackgroundAudioPlayerState(options?: GetBackgroundAudioPlayerStateOptions): void;
+  function onBackgroundAudioPause(callback:Fn): void;
+  function onBackgroundAudioPlay(callback:Fn): void;
+  function onBackgroundAudioStop(callback:Fn): void;
+  function pauseBackgroundAudio(): void;
+  function playBackgroundAudio(options: PlayBackgroundAudioOptions): void;
+  function seekBackgroundAudio(options: SeekBackgroundAudioOptions): void;
+  function stopBackgroundAudio(): void;
   //----------相机
   interface CameraContextTakePhotoOptions extends BaseOptions {
     quality?: string;
@@ -313,98 +377,6 @@ declare namespace wx {
   }
 
   function createCameraContext(instance: any): CameraContext;
-
-  //---------实施音视频 todo:未核对
-  interface RequestFullScreenOptions extends BaseOptions {
-    direction: 0 | 90 | -90;
-  }
-
-  interface LivePlayerContext {
-    play(options?: BaseOptions): void;
-
-    stop(options?: BaseOptions): void;
-
-    mute(options?: BaseOptions): void;
-
-    pause(options?: BaseOptions): void;
-
-    resume(options?: BaseOptions): void;
-
-    requestFullScreen(options: RequestFullScreenOptions): void;
-
-    exitFullScreen(): void;
-  }
-
-  interface LivePusherContext {
-    start(options?: BaseOptions): void;
-
-    stop(options?: BaseOptions): void;
-
-    pause(options?: BaseOptions): void;
-
-    resume(options?: BaseOptions): void;
-
-    switchCamera(options?: BaseOptions): void;
-
-    snapshot(options?: BaseOptions): void;
-
-    toggleTorch(options?: BaseOptions): void;
-  }
-
-  function createLivePlayerContext(
-    domId: string,
-    instance: any
-  ): LivePlayerContext;
-
-  function createLivePushContext(): LivePusherContext;
-
-  //-------视频 todo：未核对
-  interface ChooseVideoResult {
-    tempFilePath: string;
-    duration: number;
-    size: number;
-    height: number;
-    width: number;
-  }
-
-  interface ChooseVideoOptions extends BaseOptions {
-    sourceType?: string[];
-    compressed?: boolean;
-    maxDuration?: number;
-    success?: (res?: ChooseVideoResult) => void;
-  }
-
-  interface SaveVideoToPhotosAlbumResult {
-    errMsg: string;
-  }
-
-  interface SaveVideoToPhotosAlbumOptions extends BaseOptions {
-    filePath: string;
-    success: (res?: SaveVideoToPhotosAlbumResult) => void;
-  }
-
-  interface VideoContext {
-    play(): void;
-
-    pause(): void;
-
-    seek(position: number): void;
-
-    sendDanmu(danmu: { text: string; color: string }): void;
-
-    playbackRate: (rate: 0.5 | 0.8 | 1.0 | 1.2 | 1.25 | 1.5) => void;
-    requestFullScreen: () => void;
-    exitFullScreen: () => void;
-    showStatusBar: () => void;
-    hideStatusBar: () => void;
-  }
-
-  function saveVideoToPhotosAlbum(): void;
-
-  function createVideoContext(videoId: string, instance: any): VideoContext;
-
-  function chooseVideo(options: ChooseVideoOptions): void;
-
   //----------字体
   interface LoadFontFaceOptions extends BaseOptions {
     family: string;
@@ -490,6 +462,44 @@ declare namespace wx {
 
   function saveImageToPhotosAlbum(options: SaveImageToPhotosAlbumOptions);
 
+  //---------实施音视频
+  interface RequestFullScreenOptions extends BaseOptions {
+    direction: 0 | 90 | -90;
+  }
+  interface LivePlayerContext {
+    play(options?: BaseOptions): void;
+
+    stop(options?: BaseOptions): void;
+
+    mute(options?: BaseOptions): void;
+
+    pause(options?: BaseOptions): void;
+
+    resume(options?: BaseOptions): void;
+
+    requestFullScreen(options: RequestFullScreenOptions): void;
+
+    exitFullScreen(): void;
+  }
+  interface LivePusherContext {
+    pause(options?: BaseOptions): void;
+    pauseBGM(options?: BaseOptions): void;
+    playBGM(options?: BaseOptions): void;
+    resume(options?: BaseOptions): void;
+    resumeBGM(options?: BaseOptions): void;
+    setBGMVolume(options?: BaseOptions): void;
+    snapshot(options?: BaseOptions): void;
+    start(options?: BaseOptions): void;
+    stop(options?: BaseOptions): void;
+    stopBGM(options?: BaseOptions): void;
+    switchCamera(options?: BaseOptions): void;
+    toggleTorch(options?: BaseOptions): void;
+  }
+  function createLivePlayerContext(
+    domId: string,
+    instance: any
+  ): LivePlayerContext;
+  function createLivePushContext(): LivePusherContext;
   //-----------录音
   interface StartRecordResult {
     tempFilePath: string;
@@ -526,79 +536,107 @@ declare namespace wx {
   }
 
   function getRecorderManager(): RecorderManager;
-
+  //-------视频
+  interface ChooseVideoResult {
+    tempFilePath: string;
+    duration: number;
+    size: number;
+    height: number;
+    width: number;
+  }
+  interface ChooseVideoOptions extends BaseOptions {
+    sourceType?: string[];
+    compressed?: boolean;
+    maxDuration?: number;
+    success?: (res?: ChooseVideoResult) => void;
+  }
+  interface SaveVideoToPhotosAlbumResult {
+    errMsg: string;
+  }
+  interface SaveVideoToPhotosAlbumOptions extends BaseOptions {
+    filePath: string;
+    success: (res?: SaveVideoToPhotosAlbumResult) => void;
+  }
+  interface VideoContext {
+    exitFullScreen: () => void;
+    hideStatusBar: () => void;
+    pause(): void;
+    play(): void;
+    playbackRate: (rate: 0.5 | 0.8 | 1.0 | 1.2 | 1.25 | 1.5) => void;
+    requestFullScreen: () => void;
+    seek(position: number): void;
+    sendDanmu(danmu: { text: string; color: string }): void;
+    showStatusBar: () => void;
+    stop: () => void;
+  }
+  function saveVideoToPhotosAlbum(): void;
+  function createVideoContext(videoId: string, instance: any): VideoContext;
+  function chooseVideo(options: ChooseVideoOptions): void;
   /*-------------------------媒体END----------------------*/
 
 
-  /* --------------------------文件 todo:未核对---------------------- */
+  /* --------------------------文件---------------------- */
   interface GetFileInfoOptions extends BaseOptions {
     filePath: string
     digestAlgorithm?: string
     success?: (res?: GetFileInfoResult) => void
   }
-
   interface GetFileInfoResult {
     size: number
     digest: string
     errMsg: string
   }
-
   interface SaveFileResult {
     savedFilePath: string;
   }
-
   interface SaveFileOptions extends BaseOptions {
     tempFilePath: string;
     success?: (res?: SaveFileResult) => void;
   }
-
   interface FileListItem {
     filePath: string;
     createTime: number;
     size: number;
   }
-
   interface GetSavedFileListResult {
     errMsg: string;
     fileList: FileListItem[];
   }
-
   interface GetSavedFileListOptions extends BaseOptions {
     success?: (res?: GetSavedFileListResult) => void;
   }
-
   interface GetSavedFileInfoResult {
     errMsg: string;
     size: number;
     createTime: number;
   }
-
   interface GetSavedFileInfoOptions extends BaseOptions {
     filePath: string;
     success?: (res?: GetSavedFileInfoResult) => void;
   }
-
   interface RemoveSavedFileOptions extends BaseOptions {
     filePath: string;
   }
-
   interface OpenDocumentOptions extends BaseOptions {
     filePath: string;
     fileType?: "doc" | "xls" | "ppt" | "pdf" | "docx" | "xlsx" | "pptx";
   }
-
-  function saveFile(options: SaveFileOptions): void;
-
+  interface FileSystemManagerAccessOptions extends BaseOptions2 {
+    path: string
+  }
+  interface FileSystemManager {
+    access: (options: FileSystemManagerAccessOptions)=>void;
+    accessSync: (path: string)=>void;
+    // todo: 这里补完整
+    // https://developers.weixin.qq.com/miniprogram/dev/api/file/FileSystemManager.appendFile.html
+  }
   function getFileInfo(options: GetFileInfoOptions): void;
-
-  function getSavedFileList(options: GetSavedFileListOptions): void;
-
+  function getFileSystemMnager(): FileSystemManager;
   function getSavedFileInfo(options: GetSavedFileInfoOptions): void;
-
-  function removeSavedFile(options: RemoveSavedFileOptions): void;
-
+  function getSavedFileList(options: GetSavedFileListOptions): void;
   function openDocument(options: OpenDocumentOptions): void;
-
+  function removeSavedFile(options: RemoveSavedFileOptions): void;
+  function saveFile(options: SaveFileOptions): void;
   /* --------------------------文件END---------------------- */
 
 
@@ -698,27 +736,25 @@ declare namespace wx {
 
 
   /* ---------------------------------- 设备 todo:---------------------------------- */
-  //--------网络
   //--------加速计
+  //--------电量
+  //--------蓝牙
+  //--------低功耗蓝牙
   //---------剪切板
   //--------罗盘
   //--------联系人
   //--------陀螺仪
   //--------iBeacon
   //--------设备方向
-  //--------电量
+  //--------网络
+  //--------NFC
+  //--------性能
   //--------电话
   //--------扫码
-  //--------振动
-  //--------性能
-  //--------蓝牙
-  //--------NFC
   //--------屏幕
+  //--------振动
   //--------Wi-Fi
 
-
-  //-------内存
-  function onMemoryWarning(callback: (res: { level: number }) => void): void;
 
   //---------------网络状态
   type NetworkType = "2g" | "3g" | "4g" | "wifi" | "unknown" | "none";
@@ -1170,18 +1206,118 @@ declare namespace wx {
   /* ---------------------------------- 设备END ---------------------------------- */
 
 
-  /* ---------------------------------- 界面 todo----------------------------------*/
-  //-------下拉刷新
-  //-------自定义组件
-  //-------菜单
-  //-------交互
-  //-------滚动
-  //-------动画
-  //-------窗口
+  /* ---------------------------------- 界面 todo 待规整和核对----------------------------------*/
+  //--------------动画
+  interface Animation {
+    step(): this;
+
+    export(): this;
+
+    opacity(value: number): this;
+
+    backgroundColor(color: string): this;
+
+    width(value: number | string): this;
+
+    height(value: number | string): this;
+
+    top(value: number | string): this;
+
+    left(value: number | string): this;
+
+    bottom(value: number | string): this;
+
+    right(value: number | string): this;
+
+    rotate(value: number): this;
+
+    rotateX(value: number): this;
+
+    rotateY(value: number): this;
+
+    rotateZ(value: number): this;
+
+    rotate3d(x: number, y: number, z: number, a: number): this;
+
+    scale(sx: number, sy?: number): this;
+
+    scaleX(sx: number): this;
+
+    scaleY(sy: number): this;
+
+    scaleZ(sz: number): this;
+
+    scale3d(sx: number, sy: number, sz: number): this;
+
+    translate(tx: number, ty?: number): this;
+
+    translateX(tx: number): this;
+
+    translateY(ty: number): this;
+
+    translateZ(tz: number): this;
+
+    translate3d(tx: number, ty: number, tz: number): this;
+
+    skew(ax: number, ay?: number): this;
+
+    skewX(ax: number): this;
+
+    skewY(ay: number): this;
+
+    matrix(
+      a: number,
+      b: number,
+      c: number,
+      d: number,
+      tx: number,
+      ty: number
+    ): this;
+
+    matrix3d(
+      a1: number,
+      b1: number,
+      c1: number,
+      d1: number,
+      a2: number,
+      b2: number,
+      c2: number,
+      d2: number,
+      a3: number,
+      b3: number,
+      c3: number,
+      d3: number,
+      a4: number,
+      b4: number,
+      c4: number,
+      d4: number
+    ): this;
+  }
+  interface AnimationOptions {
+    duration?: number;
+    timingFunction?:
+      | "linear"
+      | "ease"
+      | "ease-in"
+      | "ease-in-out"
+      | "ease-out"
+      | "step-start"
+      | "step-end";
+    delay?: number;
+    transformOrigin?: string;
+  }
+  function createAnimation(options?: AnimationOptions): Animation;
   //-------背景
-  //-------Tab Bar
-  //-------置顶
+  //-------自定义组件
+  //-------交互
+  //-------菜单
   //-------导航栏
+  //-------下拉刷新
+  //-------滚动
+  //-------置顶
+  //-------Tab Bar
+  //-------窗口
+
 
   //-------------交互反馈
   interface ShowToastOptions extends BaseOptions {
@@ -1362,108 +1498,6 @@ declare namespace wx {
 
   function reLaunch(options: RelaunchOptions): void;
 
-  //--------------动画
-  interface Animation {
-    step(): this;
-
-    export(): this;
-
-    opacity(value: number): this;
-
-    backgroundColor(color: string): this;
-
-    width(value: number | string): this;
-
-    height(value: number | string): this;
-
-    top(value: number | string): this;
-
-    left(value: number | string): this;
-
-    bottom(value: number | string): this;
-
-    right(value: number | string): this;
-
-    rotate(value: number): this;
-
-    rotateX(value: number): this;
-
-    rotateY(value: number): this;
-
-    rotateZ(value: number): this;
-
-    rotate3d(x: number, y: number, z: number, a: number): this;
-
-    scale(sx: number, sy?: number): this;
-
-    scaleX(sx: number): this;
-
-    scaleY(sy: number): this;
-
-    scaleZ(sz: number): this;
-
-    scale3d(sx: number, sy: number, sz: number): this;
-
-    translate(tx: number, ty?: number): this;
-
-    translateX(tx: number): this;
-
-    translateY(ty: number): this;
-
-    translateZ(tz: number): this;
-
-    translate3d(tx: number, ty: number, tz: number): this;
-
-    skew(ax: number, ay?: number): this;
-
-    skewX(ax: number): this;
-
-    skewY(ay: number): this;
-
-    matrix(
-      a: number,
-      b: number,
-      c: number,
-      d: number,
-      tx: number,
-      ty: number
-    ): this;
-
-    matrix3d(
-      a1: number,
-      b1: number,
-      c1: number,
-      d1: number,
-      a2: number,
-      b2: number,
-      c2: number,
-      d2: number,
-      a3: number,
-      b3: number,
-      c3: number,
-      d3: number,
-      a4: number,
-      b4: number,
-      c4: number,
-      d4: number
-    ): this;
-  }
-
-  interface AnimationOptions {
-    duration?: number;
-    timingFunction?:
-      | "linear"
-      | "ease"
-      | "ease-in"
-      | "ease-in-out"
-      | "ease-out"
-      | "step-start"
-      | "step-end";
-    delay?: number;
-    transformOrigin?: string;
-  }
-
-  function createAnimation(options?: AnimationOptions): Animation;
 
   //--------------位置
   interface PageScrollToOptions {
@@ -1796,32 +1830,7 @@ declare namespace wx {
 
 
   /*---------------------------------- 开放接口----------------------------------*/
-
-  //-----------设置
-  interface AuthSetting {
-    scope: {
-      userInfo: boolean
-      userLocation: boolean
-      address: boolean
-      invoiceTitle: boolean
-      werun: boolean
-      record: boolean
-      writePhotoAlbum: boolean
-      camera: boolean
-    }
-  }
-
-  interface SettingOptions extends BaseOptions {
-    success: (res: {
-      authSetting: AuthSetting
-    }) => void
-  }
-
-  function getSetting(options?: SettingOptions): void
-
-  function openSetting(options?: SettingOptions): void
-
-  //-----------当前账号信息
+  //-----------账号信息
   interface GetAccountInfoSyncResult {
     miniProgram: {
       appId: string
@@ -1831,9 +1840,7 @@ declare namespace wx {
       version: string
     }
   }
-
   function getAccountInfoSync(): GetAccountInfoSyncResult
-
   //--------收货地址
   interface ChooseAddressResult {
     errMsg: string;
@@ -1846,25 +1853,19 @@ declare namespace wx {
     nationalCode: string;
     telNumber: string;
   }
-
   interface ChooseAddressOptions extends BaseOptions {
     success: (res?: ChooseAddressResult) => void;
   }
-
   function chooseAddress(options: ChooseAddressOptions): void;
-
   //----------授权
   interface AuthorizeResult {
     errMsg: string;
   }
-
   interface AuthorizeOptions extends BaseOptions {
     scope: string;
     success?: (res?: AuthorizeResult) => void;
   }
-
   function authorize(options: AuthorizeOptions): void;
-
   //-------------卡券
   interface AddCardResult {
     cardList: {
@@ -1874,7 +1875,6 @@ declare namespace wx {
       isSuccess: boolean;
     }[];
   }
-
   interface AddCardOptions extends BaseOptions {
     cardList: {
       cardId: string;
@@ -1882,7 +1882,6 @@ declare namespace wx {
     }[];
     success: (res?: AddCardResult) => void;
   }
-
   interface OpenCardOptions extends BaseOptions {
     cardList: {
       cardId: string;
@@ -1890,11 +1889,10 @@ declare namespace wx {
     }[];
     success: (res?: AddCardResult) => void;
   }
-
   function addCard(options?: AddCardOptions): void;
-
   function openCard(options?: OpenCardOptions): void;
-
+  //---------数据分析
+  function reportAnalytics(eventName: string, data: any): void;
   //--------------发票
   interface ChooseInvoiceOptions extends BaseOptions {
     success?: (res: {
@@ -1922,8 +1920,44 @@ declare namespace wx {
   function chooseInvoice(options?: ChooseInvoiceOptions): void;
 
   function chooseInvoiceTitle(options?: ChooseInvoiceTitleOptions): void;
+  //-----------登录
+  interface LoginOptions extends BaseOptions {
+    timeout?: number;
+    success?: (res:LoginResult) => void;
+  }
+  interface LoginResult {
+    code: string
+  }
+  function login(options: LoginOptions): void;
 
-  //---------todo:支付少一个
+  function checkSession(options: BaseOptions): void;
+  //---------------小程序跳转
+  interface NavigateToMiniProgramResult {
+    errMsg: string;
+  }
+
+  interface NavigateToMiniProgramOptions extends BaseOptions {
+    appId: string;
+    path?: string;
+    extraData?: any;
+    envVersion?: string;
+    success: (res: NavigateToMiniProgramResult) => void;
+  }
+
+  interface NavigateBackMiniProgramOptions {
+    extraData: any;
+    success: (res: NavigateToMiniProgramResult) => void;
+  }
+
+  function navigateBackMiniProgram(
+    options: NavigateBackMiniProgramOptions
+  ): void;
+
+  /**
+   * @deprecated 即将废弃，请使用<navigator>组件
+   */
+  function navigateToMiniProgram(options: NavigateToMiniProgramOptions): void;
+  //----------支付
   interface RequestPaymentOptions extends BaseOptions {
     timeStamp: string;
     nonceStr: string;
@@ -1931,62 +1965,29 @@ declare namespace wx {
     signType: string;
     paySign: string;
   }
-
   function requestPayment(options: RequestPaymentOptions): void;
-
-  //----------用户信息
-  interface UserInfo {
-    nickName: string;
-    avatarUrl: string;
-    gender: string;
-    city: string;
-    province: string;
-    country: string;
-    language: string;
+  //-----------设置
+  interface AuthSetting {
+    scope: {
+      userInfo: boolean
+      userLocation: boolean
+      address: boolean
+      invoiceTitle: boolean
+      werun: boolean
+      record: boolean
+      writePhotoAlbum: boolean
+      camera: boolean
+    }
   }
 
-  interface GetUserInfoOptions extends BaseOptions {
-    withCredentials?: boolean;
-    lang?: "zh_CN" | "zh_TW" | "en";
-    timeout?: number;
-    success?: (res: {
-      userInfo: UserInfo;
-      rawData: string;
-      signature: string;
-      encryptData: string;
-      iv: string;
-    }) => void;
+  interface SettingOptions extends BaseOptions {
+    success: (res:SettingResult) => void
   }
-
-  function getUserInfo(options: GetUserInfoOptions): void;
-
-  //--------------微信运动
-  interface GetWeRunResult {
-    errMsg: string;
-    encryptData: string;
-    iv: string;
+  interface SettingResult {
+    authSetting: AuthSetting
   }
-
-  interface GetWeRunOptions extends BaseOptions {
-    timeout?: number;
-    success?: (res?: GetWeRunResult) => void;
-  }
-
-  function getWeRunData(options?: GetWeRunOptions): void;
-
-  //---------数据分析
-  function reportAnalytics(eventName: string, data: any): void;
-
-  //-----------登录
-  interface LoginOptions extends BaseOptions {
-    timeout?: number;
-    success?: (res: { code: string }) => void;
-  }
-
-  function login(options: LoginOptions): void;
-
-  function checkSession(options: BaseOptions): void;
-
+  function getSetting(options?: SettingOptions): void
+  function openSetting(options?: SettingOptions): void
   //-------------生物认证
   interface CheckIsSupportSoterAuthenticationResult {
     supportMode: string[];
@@ -2033,34 +2034,46 @@ declare namespace wx {
   function checkIsSoterEnrolledInDevice(
     options: CheckIsSoterEnrolledInDeviceOptions
   ): void;
+  //----------用户信息
+  interface UserInfo {
+    nickName: string;
+    avatarUrl: string;
+    gender: string;
+    city: string;
+    province: string;
+    country: string;
+    language: string;
+  }
 
-  //---------------小程序跳转
-  interface NavigateToMiniProgramResult {
+  interface GetUserInfoOptions extends BaseOptions {
+    withCredentials?: boolean;
+    lang?: "zh_CN" | "zh_TW" | "en";
+    timeout?: number;
+    success?: (res: {
+      userInfo: UserInfo;
+      rawData: string;
+      signature: string;
+      encryptData: string;
+      iv: string;
+    }) => void;
+  }
+
+  function getUserInfo(options: GetUserInfoOptions): void;
+
+  //--------------微信运动
+  interface GetWeRunResult {
     errMsg: string;
+    encryptData: string;
+    iv: string;
   }
 
-  interface NavigateToMiniProgramOptions extends BaseOptions {
-    appId: string;
-    path?: string;
-    extraData?: any;
-    envVersion?: string;
-    success: (res: NavigateToMiniProgramResult) => void;
+  interface GetWeRunOptions extends BaseOptions {
+    timeout?: number;
+    success?: (res?: GetWeRunResult) => void;
   }
 
-  interface NavigateBackMiniProgramOptions {
-    extraData: any;
-    success: (res: NavigateToMiniProgramResult) => void;
-  }
-
-  function navigateBackMiniProgram(
-    options: NavigateBackMiniProgramOptions
-  ): void;
-
-  /**
-   * @deprecated 即将废弃，请使用<navigator>组件
-   */
-  function navigateToMiniProgram(options: NavigateToMiniProgramOptions): void;
-
+  function getWeRunData(options?: GetWeRunOptions): void;
+  /*---------------------------------- 开放接口END----------------------------------*/
 
   /*----------------------更新-----------------------*/
   interface UpdateManager {
@@ -2092,17 +2105,42 @@ declare namespace wx {
   /*--------------------WorkerEND-----------------------*/
 
 
-
-
-
   /*--------------------数据上报--------------------*/
   function reportMonitor(name: string, value: string): void;
 
   /*--------------------数据上报END----------------*/
 
+  /*--------------------基础----------------------------------*/
+  function canIUse(param: string): boolean;
+  /*--------------------基础END----------------------------------*/
+  /*-----------------todo： 画布----------------------------------*/
+  /*----------------------画布END----------------------------------*/
 
+  /*------------------------调试 todo未完------------------------------*/
+  interface SetEnableDebugOptions extends BaseOptions {
+    enableDebug: boolean;
 
+    success(errMsg?: string): void;
+  }
 
+  function setEnableDebug(options: SetEnableDebugOptions): void;
+
+  /*--------------------------调试END--------------------*/
+  /* ----------------------------第三方平台-------------------------------- */
+  interface GetExtConfigResult {
+    errMsg: string;
+    extConfig: any;
+  }
+
+  interface GetExtConfigOptions extends BaseOptions {
+    success: (res?: GetExtConfigResult) => void;
+  }
+
+  function getExtConfig(options?: GetExtConfigOptions): void;
+
+  function getExtConfigSync(): { extConfig: any };
+
+  /* ----------------------------第三方平台END-------------------------------- */
 
 
   /*-----------------todo： 地图待完善----------------------------------*/
@@ -2121,23 +2159,10 @@ declare namespace wx {
   /*----------------------地图END----------------------------------*/
 
 
-
-
-
-  /*------------------------调试 todo未完------------------------------*/
-  interface SetEnableDebugOptions extends BaseOptions {
-    enableDebug: boolean;
-
-    success(errMsg?: string): void;
-  }
-
-  function setEnableDebug(options: SetEnableDebugOptions): void;
-
-  /*--------------------------调试END--------------------*/
-
-
-
-
+  /*-----------------todo： 路由----------------------------------*/
+  /*----------------------路由END----------------------------------*/
+  /*-----------------todo： 转发----------------------------------*/
+  /*----------------------转发END----------------------------------*/
 
 
   /*-----------------系统----------------------------------*/
@@ -2169,70 +2194,8 @@ declare namespace wx {
 
   /*----------------------系统END----------------------------------*/
 
-
-
-
-
-
   /*-----------------todo： WXML----------------------------------*/
   /*----------------------WXML END----------------------------------*/
-
-
-
-
-
-
-  /*-----------------todo： 画布----------------------------------*/
-  /*----------------------画布END----------------------------------*/
-
-
-
-
-
-
-  /*--------------------基础----------------------------------*/
-  function canIUse(param: string): boolean;
-
-  /*----------------------基础END----------------------------------*/
-
-
-
-
-
-
-  /*-----------------todo： 转发----------------------------------*/
-  /*----------------------转发END----------------------------------*/
-
-
-
-
-
-
-  /*-----------------todo： 路由----------------------------------*/
-  /*----------------------路由END----------------------------------*/
-
-
-
-
-
-
-
-  /* ----------------------------第三方平台-------------------------------- */
-  interface GetExtConfigResult {
-    errMsg: string;
-    extConfig: any;
-  }
-
-  interface GetExtConfigOptions extends BaseOptions {
-    success: (res?: GetExtConfigResult) => void;
-  }
-
-  function getExtConfig(options?: GetExtConfigOptions): void;
-
-  function getExtConfigSync(): { extConfig: any };
-
-  /* ----------------------------第三方平台END-------------------------------- */
-
 
 
 
@@ -2289,8 +2252,16 @@ declare namespace wx {
     onProgressUpdate(res:{progress:number,totalBytesSent:number,totalBytesExpectedToSend:number}):void
     abort():void
   }
+  interface IRegExpOptions {
+    regexp:string
+    option: string
+  }
+  interface IRexExp {
+
+  }
   interface IDatabase {
     command: ICommand
+    RegExp: (options: IRegExpOptions)=> IRexExp
     serveDate(options:{offset:number}): IServerDate
     Geo:IGeo
   }
