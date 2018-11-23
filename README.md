@@ -1,3 +1,5 @@
+## 官方已支持Typescript，具体见[此页面](https://developers.weixin.qq.com/miniprogram/dev/devtools/edit.html)，包含了十分全面的声明文件，故该repo不再更新，使命结束
+
 ### 说明
 这是微信小程序的声明文件：目前包括[**基础库API(2.3.2)**](https://developers.weixin.qq.com/miniprogram/dev/api/)，[**云函数客户端API(2.3.2)**](https://developers.weixin.qq.com/miniprogram/dev/wxcloud/reference-client-api/)
 ### 使用
